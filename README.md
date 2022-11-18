@@ -1,7 +1,8 @@
 xcf
 ==============================
 
-tbd
+A tool for predicting various crystallization conditions from protein sequence based on structures deposited in PDB.
+Very early WIP.
 
 Project Organization
 ------------
@@ -32,11 +33,11 @@ Project Organization
     │                         generated with `pip freeze > requirements.txt`
     │
     ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
+    ├── xcf                <- Source code for use in this project.
     │   ├── __init__.py    <- Makes src a Python module
     │   │
     │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
+    │   │   └── load_data.py
     │   │
     │   ├── features       <- Scripts to turn raw data into features for modeling
     │   │   └── build_features.py
