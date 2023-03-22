@@ -9,6 +9,10 @@ class DataProcConfig():
     _aa_list = ['A','B','C','D','E','F','G','H','I','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','#']
 
     @classmethod
+    def add_new_mode(cls):
+        cls._modes.append('nowymode')
+
+    @classmethod
     def aa_one_hot_encoder(cls):
         return OneHotEncoder(categories=[cls._aa_list], sparse = False)
 
@@ -42,7 +46,7 @@ def _one_hot_encode_aa(sequence:str, max_len:int, encoder) -> pd.DataFrame:
         
     return encoder.fit_transform(seq_array).astype('int8')
 
-def process_data(data_raw:pd.DataFrame, *, mode:str = DataProcConfig.pHpred()) -> pd.DataFrame:
+def process_data(data_raw:pd.DataFrame, *, mode:str = 'pHpred') -> pd.DataFrame:
 
     if mode == 'pHpred':
         data_clean = _pHpred_cleaner(data_raw, DataProcConfig.pHpred_range(), DataProcConfig.pHpred_seq_range())
