@@ -2,7 +2,9 @@
 
 import requests
 import pandas as pd
-
+from datetime import date 
+from .db import create_db_connection
+from sqlalchemy.types import Float, Text, String
 #define PDB endpoints
 class PDBEndpoint():
     _search = 'https://search.rcsb.org/rcsbsearch/v2/query'
@@ -89,3 +91,28 @@ def report_from_PDB(ids_list, report_json_filename:str, batch_size = 5000):
 
     return data_raw
 
+def save_raw_data_to_db(data_raw: pd.DataFrame):
+    db_engine = create_db_connection()
+    today = date.today()
+    today = today.isoformat()
+    table_name = f'data_raw_{today}'
+    with db_engine.connect() as db_connection:
+        data_raw.to_sql(
+            name = table_name, 
+            con = db_engine, 
+            if_exists = 'replace', 
+            index = False, 
+            chunksize = 5000,  
+            dtype = {
+                'matthews': Float,
+                'percent_solvent': Float,
+                'rcsb_id': String,
+                'method': Text,
+                'pH': Float,
+                'conditions': Text,
+                'temp': Float,
+                'resolution': Float,
+                'organism': Text,
+                'sequence': Text
+            }
+        )
