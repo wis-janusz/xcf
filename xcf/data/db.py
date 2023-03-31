@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 def create_url(
-    username: str = "postgres",
+    username: str = "test",
     password: str = "12345",
     host: str = "localhost",
     port: str = "5433",
