@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
+from sqlalchemy import text
+from .db import create_db_connection
 
 class DataProcConfig():
     _modes = ['pHpred']
@@ -9,8 +11,8 @@ class DataProcConfig():
     _aa_list = ['A','B','C','D','E','F','G','H','I','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','#']
 
     @classmethod
-    def add_new_mode(cls):
-        cls._modes.append('nowymode')
+    def add_new_mode(cls, name:str):
+        cls._modes.append(name)
 
     @classmethod
     def aa_one_hot_encoder(cls):
@@ -55,3 +57,19 @@ def process_data(data_raw:pd.DataFrame, *, mode:str = 'pHpred') -> pd.DataFrame:
         return data_clean
 
 
+def list_raw_data_tables():
+    db_engine = create_db_connection()
+    with db_engine.connect() as db_connection:
+        print(db_connection.execute(text("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'data_raw_%'")).all())
+
+def load_raw_data_from_db(table_name: str, mode:str = 'pHpred') -> pd.DataFrame:
+    db_engine = create_db_connection()
+
+    with db_engine.connect() as db_connection:
+        data_raw = pd.read_sql_table(table_name, db_connection)
+    
+    if mode == 'pHpred':
+        data_clean = _pHpred_cleaner(data_raw, DataProcConfig.pHpred_range(), DataProcConfig.pHpred_seq_range())
+
+    return data_clean
+    
