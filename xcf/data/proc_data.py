@@ -11,16 +11,12 @@ class DataProcConfig():
     _aa_list = ['A','B','C','D','E','F','G','H','I','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','#']
 
     @classmethod
-    def add_new_mode(cls, name:str):
-        cls._modes.append(name)
-
-    @classmethod
     def aa_one_hot_encoder(cls):
         return OneHotEncoder(categories=[cls._aa_list], sparse = False)
 
     @classmethod
-    def pHpred(cls):
-        return cls._modes[0]
+    def list_modes(cls):
+        return cls._modes
 
     @classmethod
     def pHpred_range(cls):
@@ -48,6 +44,17 @@ def _one_hot_encode_aa(sequence:str, max_len:int, encoder) -> pd.DataFrame:
         
     return encoder.fit_transform(seq_array).astype('int8')
 
+
+"""DEPRECATED: Use load_raw_data_from_db instead.
+Takes raw data DataFrame and processes it for pHpred, including one-hot encoding.
+
+Args: 
+    data_raw: DataFrame containing raw data.
+
+Returns:
+    data_clean: DataFrame with data cleaned for pHpred and one-hot encoding of sequences.
+
+"""
 def process_data(data_raw:pd.DataFrame, *, mode:str = 'pHpred') -> pd.DataFrame:
 
     if mode == 'pHpred':
@@ -59,8 +66,11 @@ def process_data(data_raw:pd.DataFrame, *, mode:str = 'pHpred') -> pd.DataFrame:
 
 def list_raw_data_tables():
     db_engine = create_db_connection()
+
     with db_engine.connect() as db_connection:
-        print(db_connection.execute(text("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'data_raw_%'")).all())
+        tables = db_connection.execute(text("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'data_raw_%'")).all()
+        
+    return tables
 
 def load_raw_data_from_db(table_name: str, mode:str = 'pHpred') -> pd.DataFrame:
     db_engine = create_db_connection()
