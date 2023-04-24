@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from sklearn.preprocessing import OneHotEncoder
 from sqlalchemy import text
+from sqlalchemy.types import Float, Text, Integer
+from tensorflow import data
 from .db import create_db_connection
+
 
 class DataProcConfig():
     _modes = ['pHpred']
@@ -72,14 +76,56 @@ def list_raw_data_tables():
         
     return tables
 
-def load_raw_data_from_db(table_name: str, mode:str = 'pHpred') -> pd.DataFrame:
+def load_data_from_db(table_name: str, mode:str = 'pHpred') -> pd.DataFrame:
     db_engine = create_db_connection()
 
     with db_engine.connect() as db_connection:
         data_raw = pd.read_sql_table(table_name, db_connection)
     
-    if mode == 'pHpred':
-        data_clean = _pHpred_cleaner(data_raw, DataProcConfig.pHpred_range(), DataProcConfig.pHpred_seq_range())
-
-    return data_clean
+    if mode == 'clean':
+        data_clean = data_raw.set_index('rcsb_id')
     
+    elif mode == 'pHpred':
+        data_clean = _pHpred_cleaner(data_raw, DataProcConfig.pHpred_range(), DataProcConfig.pHpred_seq_range())
+    
+    return data_clean
+
+def save_data_to_db(data_clean: pd.DataFrame, mode:str = 'pHpred', custom_table_name = None, source_table_name = None):
+    
+    db_engine = create_db_connection()
+    with db_engine.connect() as db_connection:
+        if mode == 'pHpred':
+            if not custom_table_name:
+                table_name = f"data_pHpred_from_{source_table_name}"
+            else:
+                table_name = custom_table_name
+
+            data_clean.to_sql(
+                name=table_name,
+                con=db_engine,
+                if_exists='replace',
+                index=True,
+                chunksize=5000,
+                dtype={
+                    "pH": Float,
+                    "sequence": Text,
+                    "len_seq": Integer
+                }
+        )
+
+def split_ds(ds: data.Dataset, train=0.8, val=0.1, test=0.1, shuffle=True) -> data.Dataset:
+    ds_size = int(data.experimental.cardinality(ds))
+    
+    assert (train + test + val) == 1
+    
+    if shuffle:
+        ds = ds.shuffle(ds_size, seed=14)
+    
+    train_size = int(train * ds_size)
+    val_size = int(val * ds_size)
+    
+    train_ds = ds.take(train_size)    
+    val_ds = ds.skip(train_size).take(val_size)
+    test_ds = ds.skip(train_size).skip(val_size)
+    
+    return train_ds, val_ds, test_ds
