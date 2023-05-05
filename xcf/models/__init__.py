@@ -1,0 +1,1 @@
+from .models import compile_phpred_basic_LSTM

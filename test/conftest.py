@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import numpy as np
 
 @pytest.fixture
 def search_json():
@@ -7,7 +8,7 @@ def search_json():
 
 @pytest.fixture
 def search_json_len():
-    return 144
+    return 145
 
 @pytest.fixture
 def report_json():
@@ -18,13 +19,9 @@ def report_columns():
     return ['matthews','percent_solvent','rcsb_id','method','pH','conditions','temp','resolution','organism','sequence']
 
 @pytest.fixture
-def pHpred_data_raw():
-    return pd.read_csv('test/data_raw_2022-11-06.csv')[0:1000]
+def test_df():
+    return pd.DataFrame({'column':np.arange(1000)})
 
 @pytest.fixture
-def pHpred_data_clean_columns():
-    return ['pH','sequence','len_seq', 'seq_one_hot']
-
-@pytest.fixture
-def pHpred_data_clean_len():
-    return 873  #873 for firest 1000 raw entries, ph 3-9, length 100-600
+def test_split():
+    return np.split(pd.DataFrame({'column':np.arange(1000)}).sample(frac=1, random_state=14), [800,900])

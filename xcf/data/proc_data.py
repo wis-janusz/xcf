@@ -129,3 +129,17 @@ def split_ds(ds: data.Dataset, train=0.8, val=0.1, test=0.1, shuffle=True) -> da
     test_ds = ds.skip(train_size).skip(val_size)
     
     return train_ds, val_ds, test_ds
+
+def split_df(df: pd.DataFrame, train=0.8, val=0.1, test=0.1, shuffle=True) -> pd.DataFrame:
+    assert (train + test + val) == 1
+
+    if shuffle:
+        df_sample = df.sample(frac=1, random_state=14)
+    else:
+        df_sample = df
+
+    sections = [int(train * len(df)), int((1 - test) * len(df))]
+    
+    train_ds, val_ds, test_ds = np.split(df_sample, sections)
+    
+    return train_ds, val_ds, test_ds
